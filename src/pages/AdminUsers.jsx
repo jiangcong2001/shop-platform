@@ -8,22 +8,21 @@ export default function AdminUsers() {
   const [balAmount, setBalAmount] = useState('')
 
   useEffect(() => {
-    const users = adminGetAllUsers()
-    const sells = adminGetSells()
-    // Match sell phone to user
-    const arr = Object.values(users).filter(u => u.role !== 'admin')
-      .map(u => {
-        const sellRecord = sells.find(s => s.username === u.username)
-        return { ...u, phone: u.phone || (sellRecord ? sellRecord.phone : '') }
-      })
-    setList(arr.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)))
+    Promise.all([adminGetAllUsers(), adminGetSells()]).then(([users, sells]) => {
+      const arr = (Array.isArray(users) ? users : []).filter(u => u.role !== 'admin')
+        .map(u => {
+          const sellRecord = sells.find(s => s.username === u.username)
+          return { ...u, phone: u.phone || (sellRecord ? sellRecord.phone : '') }
+        })
+      setList(arr.sort((a, b) => new Date(b.created_at || b.createdAt) - new Date(a.created_at || a.createdAt)))
+    })
   }, [])
 
-  const handleAddBalance = (username) => {
+  const handleAddBalance = async (username) => {
     const amount = parseInt(balAmount)
     if (!amount || amount <= 0) return
-    addBalance(username, amount)
-    setList(prev => prev.map(u => u.username === username ? { ...u, balance: u.balance + amount } : u))
+    await addBalance(username, amount)
+    setList(prev => prev.map(u => u.username === username ? { ...u, balance: (u.balance || 0) + amount } : u))
     setShowAddBal({ ...showAddBal, [username]: false })
     setBalAmount('')
   }
@@ -42,7 +41,6 @@ export default function AdminUsers() {
                 <th className="text-left px-4 py-3 font-medium">用户名</th>
                 <th className="text-left px-4 py-3 font-medium">手机号</th>
                 <th className="text-right px-4 py-3 font-medium">余额</th>
-                <th className="text-right px-4 py-3 font-medium">已购店铺</th>
                 <th className="text-left px-4 py-3 font-medium">注册时间</th>
                 <th className="text-center px-4 py-3 font-medium">操作</th>
               </tr>
@@ -53,8 +51,9 @@ export default function AdminUsers() {
                   <td className="px-4 py-3 font-medium text-gray-700">{u.username}</td>
                   <td className="px-4 py-3 text-gray-500">{u.phone || '-'}</td>
                   <td className="px-4 py-3 text-right font-semibold text-red-600">{u.balance || 0} 元</td>
-                  <td className="px-4 py-3 text-right text-gray-600">{(u.purchasedStores || []).length} 家</td>
-                  <td className="px-4 py-3 text-gray-400">{new Date(u.createdAt).toLocaleDateString()}</td>
+                  <td className="px-4 py-3 text-gray-400">
+                    {(u.created_at || u.createdAt) ? new Date(u.created_at || u.createdAt).toLocaleDateString() : '-'}
+                  </td>
                   <td className="px-4 py-3 text-center">
                     <button onClick={() => setShowAddBal({ ...showAddBal, [u.username]: !showAddBal[u.username] })}
                       className="text-blue-500 hover:text-blue-700 text-xs">充值</button>

@@ -6,7 +6,7 @@ export default function AdminOrders() {
   const [list, setList] = useState([])
 
   useEffect(() => {
-    setList(adminGetRecharges().sort((a, b) => b.id - a.id))
+    adminGetRecharges().then(data => setList(Array.isArray(data) ? data : []))
   }, [])
 
   const statusMap = {
@@ -17,7 +17,6 @@ export default function AdminOrders() {
 
   const pending = list.filter(r => r.status === 'pending').length
   const confirmed = list.filter(r => r.status === 'confirmed').length
-  const totalAmount = list.filter(r => r.status === 'confirmed').reduce((s, r) => s + r.amount, 0)
 
   return (
     <div>
@@ -59,7 +58,7 @@ export default function AdminOrders() {
                     <td className="px-4 py-3 text-center">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${st.cls}`}>{st.label}</span>
                     </td>
-                    <td className="px-4 py-3 text-gray-400">{new Date(r.date).toLocaleString()}</td>
+                    <td className="px-4 py-3 text-gray-400">{new Date(r.created_at || r.date).toLocaleString()}</td>
                   </tr>
                 )
               })}

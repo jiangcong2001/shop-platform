@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../AuthContext'
 import stores from '../data/stores'
 
@@ -6,22 +6,24 @@ export default function AdminDashboard() {
   const { adminGetRecharges, adminGetSells, adminConfirmRecharge, adminGetAllUsers } = useAuth()
   const [recharges, setRecharges] = useState([])
   const [sells, setSells] = useState([])
+  const [totalUsers, setTotalUsers] = useState(0)
 
-  const refresh = () => {
-    const r = adminGetRecharges()
-    setRecharges(r.sort((a, b) => b.id - a.id))
-    setSells(adminGetSells().sort((a, b) => b.id - a.id))
-  }
-  useEffect(() => { refresh() }, [])
+  const refresh = useCallback(async () => {
+    const [r, s, u] = await Promise.all([
+      adminGetRecharges(), adminGetSells(), adminGetAllUsers(),
+    ])
+    setRecharges(Array.isArray(r) ? r : [])
+    setSells(Array.isArray(s) ? s : [])
+    setTotalUsers(Array.isArray(u) ? u.filter(x => x.role !== 'admin').length : 0)
+  }, [])
+
+  useEffect(() => { refresh() }, [refresh])
 
   const pendingRecharges = recharges.filter(r => r.status === 'pending')
   const pendingSells = sells.filter(s => s.status === 'pending')
-  const users = adminGetAllUsers()
-  const totalUsers = Object.keys(users).length
-  const totalBalance = Object.values(users).reduce((s, u) => s + (u.balance || 0), 0)
 
-  const handleConfirm = (id) => {
-    adminConfirmRecharge(id)
+  const handleConfirm = async (id) => {
+    await adminConfirmRecharge(id)
     refresh()
   }
 
@@ -57,7 +59,7 @@ export default function AdminDashboard() {
               <div key={r.id} className="px-5 py-3 flex items-center justify-between">
                 <div>
                   <span className="font-medium text-gray-700">{r.username}</span>
-                  <span className="text-sm text-gray-400 ml-3">{new Date(r.date).toLocaleString()}</span>
+                  <span className="text-sm text-gray-400 ml-3">{new Date(r.created_at || r.date).toLocaleString()}</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="font-bold text-red-600">{r.amount} 元</span>
@@ -90,7 +92,7 @@ export default function AdminDashboard() {
                 <div className="flex items-center gap-4 text-xs text-gray-400">
                   <span>用户：{s.username}</span>
                   <span>手机：{s.phone}</span>
-                  <span>{new Date(s.date).toLocaleString()}</span>
+                  <span>{new Date(s.created_at || s.date).toLocaleString()}</span>
                 </div>
                 {s.desc && <p className="text-xs text-gray-500 mt-1">{s.desc}</p>}
               </div>
