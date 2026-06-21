@@ -12,6 +12,7 @@ import News from './pages/News'
 import Service from './pages/Service'
 import Sell from './pages/Sell'
 import Login from './pages/Login'
+import Dashboard from './pages/Dashboard'
 import AdminLayout from './pages/AdminLayout'
 import AdminDashboard from './pages/AdminDashboard'
 import AdminStores from './pages/AdminStores'
@@ -23,7 +24,6 @@ export default function App() {
     <AuthProvider>
       <HashRouter>
         <Routes>
-          {/* Admin routes - no public header/footer */}
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="stores" element={<AdminStores />} />
@@ -31,14 +31,12 @@ export default function App() {
             <Route path="users" element={<AdminUsers />} />
           </Route>
 
-          {/* Login - no header/footer */}
           <Route path="/login" element={<Login />} />
 
-          {/* Public routes - with header/footer */}
           <Route path="*" element={
-            <div className="min-h-screen flex flex-col bg-[#f8fafc]">
+            <div className="min-h-screen flex flex-col bg-gray-50">
               <Header />
-              <main className="flex-1">
+              <main className="flex-1 w-full">
                 <Routes>
                   <Route path="/" element={<Home />} />
                   <Route path="/list" element={<StoreList />} />
@@ -50,6 +48,7 @@ export default function App() {
                   <Route path="/news" element={<News />} />
                   <Route path="/service" element={<Service />} />
                   <Route path="/sell" element={<Sell />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
                 </Routes>
               </main>
               <Footer />
