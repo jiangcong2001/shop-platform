@@ -35,6 +35,7 @@ export default function Header() {
           <div className="hidden md:flex items-center gap-2">
             <Link to="/list" className="bg-primary text-white text-sm px-4 py-1.5 rounded-full hover:bg-primary-dark">购买店铺</Link>
             <Link to="/sell" className="border border-primary text-primary text-sm px-4 py-1.5 rounded-full hover:bg-primary-light">出售店铺</Link>
+            <Link to="/login" className="text-gray-400 text-sm hover:text-primary ml-1">登录</Link>
           </div>
           <button className="md:hidden p-1" onClick={() => setOpen(!open)}>
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -51,6 +52,7 @@ export default function Header() {
               <Link to="/list" onClick={() => setOpen(false)} className="flex-1 bg-primary text-white text-center text-sm py-2 rounded-full">购买店铺</Link>
               <Link to="/sell" onClick={() => setOpen(false)} className="flex-1 border border-primary text-primary text-center text-sm py-2 rounded-full">出售店铺</Link>
             </div>
+            <Link to="/login" onClick={() => setOpen(false)} className="text-center text-sm text-gray-400 pt-1">管理后台登录</Link>
           </div>
         )}
       </div>
