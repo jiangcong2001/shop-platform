@@ -36,7 +36,7 @@ export default function App() {
 
           {/* Public routes - with header/footer */}
           <Route path="*" element={
-            <div className="min-h-screen flex flex-col bg-[#f5f5f5]">
+            <div className="min-h-screen flex flex-col bg-[#f8fafc]">
               <Header />
               <main className="flex-1">
                 <Routes>
