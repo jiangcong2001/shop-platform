@@ -1,11 +1,23 @@
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../AuthContext'
 
 export default function Dashboard() {
   const { user, logout } = useAuth()
   const nav = useNavigate()
+  const [data, setData] = useState(null)
 
-  if (!user) { nav('/login'); return null }
+  useEffect(() => {
+    if (!user || user.role === 'admin') { nav('/login'); return }
+    try {
+      const users = JSON.parse(localStorage.getItem('shop_users') || '{}')
+      setData(users[user.username] || user)
+    } catch (e) {
+      setData(user)
+    }
+  }, [user, nav])
+
+  if (!data) return null
 
   return (
     <div className="w-full px-4 md:px-8 py-8 mx-auto" style={{ maxWidth: '960px' }}>
@@ -15,11 +27,11 @@ export default function Dashboard() {
 
       {/* Info Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {[
-          { l: '账户余额', v: `${user.balance || 0} 元`, c: 'bg-red-50 text-red-600' },
-          { l: '已购店铺', v: `${(user.purchasedStores || []).length} 家`, c: 'bg-blue-50 text-blue-600' },
-          { l: '充值记录', v: `${(user.rechargeRecords || []).length} 条`, c: 'bg-green-50 text-green-600' },
-          { l: '用户名', v: user.username, c: 'bg-gray-100 text-gray-600' },
+          {[
+            { l: '账户余额', v: `${data.balance || 0} 元`, c: 'bg-red-50 text-red-600' },
+            { l: '已购店铺', v: `${(data.purchasedStores || []).length} 家`, c: 'bg-blue-50 text-blue-600' },
+            { l: '充值记录', v: `${(data.rechargeRecords || []).length} 条`, c: 'bg-green-50 text-green-600' },
+            { l: '用户名', v: data.username, c: 'bg-gray-100 text-gray-600' },
         ].map(s => (
           <div key={s.l} className="bg-white rounded-2xl border p-5 text-center">
             <div className="text-xs text-gray-400 mb-2">{s.l}</div>
@@ -37,11 +49,11 @@ export default function Dashboard() {
       {/* Purchased Stores */}
       <div className="bg-white rounded-2xl border p-6 mb-8">
         <h2 className="text-xl font-bold text-gray-900 mb-4">已购店铺</h2>
-        {(user.purchasedStores || []).length === 0 ? (
+        {(data.purchasedStores || []).length === 0 ? (
           <p className="text-gray-400 text-sm text-center py-8">暂无购买记录</p>
         ) : (
           <div className="divide-y">
-            {user.purchasedStores.map((s, i) => (
+              {data.purchasedStores.map((s, i) => (
               <div key={i} className="flex justify-between items-center py-4">
                 <div>
                   <div className="font-semibold text-gray-800">{s.name}</div>
@@ -57,11 +69,11 @@ export default function Dashboard() {
       {/* Recharge Records */}
       <div className="bg-white rounded-2xl border p-6">
         <h2 className="text-xl font-bold text-gray-900 mb-4">充值记录</h2>
-        {(user.rechargeRecords || []).length === 0 ? (
+        {(data.rechargeRecords || []).length === 0 ? (
           <p className="text-gray-400 text-sm text-center py-8">暂无充值记录</p>
         ) : (
           <div className="divide-y">
-            {[...(user.rechargeRecords || [])].reverse().map((r, i) => (
+              {[...(data.rechargeRecords || [])].reverse().map((r, i) => (
               <div key={i} className="flex justify-between items-center py-3">
                 <div>
                   <span className="font-semibold text-gray-800">{r.amount} 元</span>

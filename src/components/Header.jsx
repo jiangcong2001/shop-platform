@@ -32,11 +32,18 @@ export default function Header() {
 
           <div className="hidden md:flex items-center gap-2">
             {user ? (
-              <>
-                <Link to="/dashboard" className="text-sm text-gray-600 hover:text-red-600">我的账户</Link>
-                <span className="text-sm text-gray-400">余额: <span className="text-red-600 font-semibold">{user.balance || 0}</span>元</span>
-                <button onClick={logout} className="text-sm text-gray-400 hover:text-gray-600">退出</button>
-              </>
+              user.role === 'admin' ? (
+                <>
+                  <Link to="/admin" className="text-sm text-red-600 font-semibold">管理后台</Link>
+                  <button onClick={logout} className="text-sm text-gray-400 hover:text-gray-600">退出</button>
+                </>
+              ) : (
+                <>
+                  <Link to="/dashboard" className="text-sm text-gray-600 hover:text-red-600">我的账户</Link>
+                  <span className="text-sm text-gray-400">余额: <span className="text-red-600 font-semibold">{user.balance || 0}</span>元</span>
+                  <button onClick={logout} className="text-sm text-gray-400 hover:text-gray-600">退出</button>
+                </>
+              )
             ) : (
               <>
                 <Link to="/login" className="text-sm text-gray-500 hover:text-red-600">登录</Link>
@@ -67,10 +74,17 @@ export default function Header() {
           </nav>
           <hr className="my-3" />
           {user ? (
-            <div className="space-y-1">
-              <Link to="/dashboard" onClick={() => setOpen(false)} className="block px-3 py-2.5 rounded text-sm text-gray-600">我的账户 (余额: {user.balance}元)</Link>
-              <button onClick={() => { logout(); setOpen(false) }} className="block w-full text-left px-3 py-2.5 rounded text-sm text-gray-400">退出登录</button>
-            </div>
+            user.role === 'admin' ? (
+              <div className="space-y-1">
+                <Link to="/admin" onClick={() => setOpen(false)} className="block px-3 py-2.5 rounded text-sm text-red-600 font-semibold">管理后台</Link>
+                <button onClick={() => { logout(); setOpen(false) }} className="block w-full text-left px-3 py-2.5 rounded text-sm text-gray-400">退出登录</button>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                <Link to="/dashboard" onClick={() => setOpen(false)} className="block px-3 py-2.5 rounded text-sm text-gray-600">我的账户 (余额: {user.balance}元)</Link>
+                <button onClick={() => { logout(); setOpen(false) }} className="block w-full text-left px-3 py-2.5 rounded text-sm text-gray-400">退出登录</button>
+              </div>
+            )
           ) : (
             <div className="space-y-1">
               <Link to="/login" onClick={() => setOpen(false)} className="block px-3 py-2.5 rounded text-sm text-gray-600">登录</Link>

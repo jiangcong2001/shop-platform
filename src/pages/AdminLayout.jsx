@@ -3,8 +3,7 @@ import { useAuth } from '../AuthContext'
 
 const sidebarLinks = [
   { to: '/admin', label: '控制台', icon: 'D', end: true },
-  { to: '/admin/stores', label: '店铺管理', icon: 'S' },
-  { to: '/admin/orders', label: '订单管理', icon: 'O' },
+  { to: '/admin/orders', label: '充值记录', icon: 'O' },
   { to: '/admin/users', label: '用户管理', icon: 'U' },
 ]
 
@@ -23,7 +22,7 @@ export default function AdminLayout() {
             <div className="w-9 h-9 bg-red-600 rounded-xl flex items-center justify-center"><span className="text-white font-bold text-sm">SC</span></div>
             <span className="font-bold text-lg">管理后台</span>
           </div>
-          <p className="text-gray-400 text-xs">欢迎，{user.name}</p>
+          <p className="text-gray-400 text-xs">欢迎，{user.username}</p>
         </div>
         <nav className="flex-1 p-3 space-y-1">
           {sidebarLinks.map(link => {

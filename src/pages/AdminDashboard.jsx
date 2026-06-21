@@ -1,60 +1,102 @@
-import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useAuth } from '../AuthContext'
 import stores from '../data/stores'
 
 export default function AdminDashboard() {
-  const total = stores.length
-  const totalValue = stores.reduce((s, x) => s + x.price, 0)
-  const byPlatform = {}
-  stores.forEach(s => { byPlatform[s.platform] = (byPlatform[s.platform] || 0) + 1 })
+  const { adminGetRecharges, adminGetSells, adminConfirmRecharge, adminGetAllUsers } = useAuth()
+  const [recharges, setRecharges] = useState([])
+  const [sells, setSells] = useState([])
+
+  const refresh = () => {
+    const r = adminGetRecharges()
+    setRecharges(r.sort((a, b) => b.id - a.id))
+    setSells(adminGetSells().sort((a, b) => b.id - a.id))
+  }
+  useEffect(() => { refresh() }, [])
+
+  const pendingRecharges = recharges.filter(r => r.status === 'pending')
+  const pendingSells = sells.filter(s => s.status === 'pending')
+  const users = adminGetAllUsers()
+  const totalUsers = Object.keys(users).length
+  const totalBalance = Object.values(users).reduce((s, u) => s + (u.balance || 0), 0)
+
+  const handleConfirm = (id) => {
+    adminConfirmRecharge(id)
+    refresh()
+  }
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-gray-800 mb-6">控制台</h1>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         {[
-          { label: '店铺总数', value: total, color: 'text-blue-600', bg: 'bg-blue-50' },
-          { label: '上架中', value: total, color: 'text-green-600', bg: 'bg-green-50' },
-          { label: '今日咨询', value: 128, color: 'text-orange-600', bg: 'bg-orange-50' },
-          { label: '成交总额', value: `¥${(totalValue/10000).toFixed(0)}万`, color: 'text-primary', bg: 'bg-primary-light' },
+          { l: '店铺总数', v: stores.length, c: 'text-blue-600', b: 'bg-blue-50' },
+          { l: '注册用户', v: totalUsers, c: 'text-green-600', b: 'bg-green-50' },
+          { l: '待处理充值', v: pendingRecharges.length, c: 'text-orange-600', b: 'bg-orange-50' },
+          { l: '待处理出售', v: pendingSells.length, c: 'text-red-600', b: 'bg-red-50' },
         ].map(s => (
-          <div key={s.label} className={`${s.bg} rounded-xl p-5`}>
-            <div className="text-sm text-gray-500 mb-1">{s.label}</div>
-            <div className={`text-3xl font-bold ${s.color}`}>{s.value}</div>
+          <div key={s.l} className={`${s.b} rounded-xl p-4`}>
+            <div className="text-xs text-gray-500 mb-1">{s.l}</div>
+            <div className={`text-2xl font-bold ${s.c}`}>{s.v}</div>
           </div>
         ))}
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm border p-5">
-          <h3 className="font-semibold text-gray-800 mb-4">各平台店铺分布</h3>
-          <div className="space-y-3">
-            {Object.entries(byPlatform).map(([k, v]) => (
-              <div key={k} className="flex items-center gap-3">
-                <span className="text-sm text-gray-600 w-16">{k}</span>
-                <div className="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
-                  <div className="bg-primary h-full rounded-full" style={{ width: `${(v/total*100)}%` }}></div>
+      {/* Pending Recharges */}
+      <div className="bg-white rounded-xl border mb-6">
+        <div className="px-5 py-4 border-b flex items-center justify-between">
+          <h2 className="font-bold text-gray-800">待处理充值 ({pendingRecharges.length})</h2>
+          <button onClick={refresh} className="text-xs text-gray-400 hover:text-red-500">刷新</button>
+        </div>
+        {pendingRecharges.length === 0 ? (
+          <p className="text-gray-400 text-sm text-center py-8">暂无待处理充值</p>
+        ) : (
+          <div className="divide-y">
+            {pendingRecharges.map(r => (
+              <div key={r.id} className="px-5 py-3 flex items-center justify-between">
+                <div>
+                  <span className="font-medium text-gray-700">{r.username}</span>
+                  <span className="text-sm text-gray-400 ml-3">{new Date(r.date).toLocaleString()}</span>
                 </div>
-                <span className="text-sm text-gray-500">{v}家</span>
+                <div className="flex items-center gap-3">
+                  <span className="font-bold text-red-600">{r.amount} 元</span>
+                  <button onClick={() => handleConfirm(r.id)}
+                    className="bg-green-500 text-white text-xs px-4 py-2 rounded-lg hover:bg-green-600">
+                    确认到账
+                  </button>
+                </div>
               </div>
             ))}
           </div>
-        </div>
+        )}
+      </div>
 
-        <div className="bg-white rounded-xl shadow-sm border p-5">
-          <h3 className="font-semibold text-gray-800 mb-4">快捷操作</h3>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { label: '添加店铺', to: '/admin/stores' },
-              { label: '查看订单', to: '/admin/orders' },
-              { label: '用户管理', to: '/admin/users' },
-              { label: '返回网站', to: '/' },
-            ].map(a => (
-              <Link key={a.label} to={a.to} className="border rounded-lg p-4 text-center hover:border-primary hover:text-primary transition-colors">
-                <div className="font-medium text-sm">{a.label}</div>
-              </Link>
+      {/* Pending Sell Requests */}
+      <div className="bg-white rounded-xl border">
+        <div className="px-5 py-4 border-b">
+          <h2 className="font-bold text-gray-800">待处理出售申请 ({pendingSells.length})</h2>
+        </div>
+        {pendingSells.length === 0 ? (
+          <p className="text-gray-400 text-sm text-center py-8">暂无出售申请</p>
+        ) : (
+          <div className="divide-y">
+            {pendingSells.map(s => (
+              <div key={s.id} className="px-5 py-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="font-medium text-gray-700">{s.platform} · {s.category || '未指定'} · {s.level}</span>
+                  <span className="font-bold text-red-600">{s.price} 元</span>
+                </div>
+                <div className="flex items-center gap-4 text-xs text-gray-400">
+                  <span>用户：{s.username}</span>
+                  <span>手机：{s.phone}</span>
+                  <span>{new Date(s.date).toLocaleString()}</span>
+                </div>
+                {s.desc && <p className="text-xs text-gray-500 mt-1">{s.desc}</p>}
+              </div>
             ))}
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

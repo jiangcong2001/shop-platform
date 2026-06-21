@@ -15,7 +15,6 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import AdminLayout from './pages/AdminLayout'
 import AdminDashboard from './pages/AdminDashboard'
-import AdminStores from './pages/AdminStores'
 import AdminOrders from './pages/AdminOrders'
 import AdminUsers from './pages/AdminUsers'
 
@@ -26,7 +25,6 @@ export default function App() {
         <Routes>
           <Route path="/admin" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
-            <Route path="stores" element={<AdminStores />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="users" element={<AdminUsers />} />
           </Route>
